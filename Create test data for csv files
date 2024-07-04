@@ -1,0 +1,69 @@
+import pandas as pd
+import numpy as np
+import pyarrow as pa
+import pyarrow.csv as csv
+import time
+
+# Define the number of records
+num_records = 1_000_000
+
+# Define chunk size for writing
+chunk_size = 1_000_000
+
+# Function to generate data
+def generate_data(start, end):
+    size = end - start
+    data = {
+        'id': np.arange(start, end),
+        'int_col': np.random.randint(0, 100, size).astype(float),  # Convert to float to allow NaNs
+        'float_col': np.random.rand(size),
+        'bool_col': np.random.choice([True, False], size),
+        'category_col': np.random.choice(['A', 'B', 'C', 'D'], size),
+        'date_col': pd.date_range('2023-01-01', periods=size, freq='s'),
+        'string_col': np.random.choice(['foo', 'bar', 'baz'], size),
+        'int_col2': np.random.randint(0, 1000, size).astype(float)  # Convert to float to allow NaNs
+    }
+
+    # Introduce null values
+    for key in data.keys():
+        if key != 'id':
+            null_indices = np.random.choice(size, size // 10, replace=False)
+            series = pd.Series(data[key])
+            if series.dtype == 'float64':
+                series.iloc[null_indices] = np.nan
+            else:
+                series.iloc[null_indices] = None
+            data[key] = series.to_numpy()
+
+    # Add trailing spaces to some string values
+    space_indices = np.random.choice(size, size // 10, replace=False)
+    series = pd.Series(data['string_col'])
+    series.iloc[space_indices] = series.iloc[space_indices] + ' '
+    data['string_col'] = series.to_numpy()
+
+    df = pd.DataFrame(data)
+
+    # Ensure duplicates
+    duplicate_indices = np.random.choice(df.index, size // 10, replace=False)
+    duplicates = df.loc[duplicate_indices]
+    df = pd.concat([df, duplicates])
+
+    return df
+
+# Measure the time to save to CSV
+start_time = time.time()
+
+# Write the data in chunks to handle large size
+with pa.OSFile('large_dataset1Million.csv', 'wb') as sink:
+    write_options = csv.WriteOptions(include_header=True)
+    for i in range(0, num_records, chunk_size):
+        data_chunk = generate_data(i, min(i + chunk_size, num_records))
+        table = pa.Table.from_pandas(data_chunk)
+        csv.write_csv(table, sink, write_options=write_options)
+        write_options = csv.WriteOptions(include_header=False)
+
+end_time = time.time()
+
+# Calculate and print the time taken
+time_taken = end_time - start_time
+print(f"Time taken to write 1 million records: {time_taken / 3600} hours")
