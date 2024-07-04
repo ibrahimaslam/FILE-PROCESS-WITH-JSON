@@ -1,7 +1,5 @@
 import pandas as pd
 import numpy as np
-import pyarrow as pa
-import pyarrow.csv as csv
 import time
 
 # Define the number of records
@@ -54,13 +52,12 @@ def generate_data(start, end):
 start_time = time.time()
 
 # Write the data in chunks to handle large size
-with pa.OSFile('large_dataset1Million.csv', 'wb') as sink:
-    write_options = csv.WriteOptions(include_header=True)
-    for i in range(0, num_records, chunk_size):
-        data_chunk = generate_data(i, min(i + chunk_size, num_records))
-        table = pa.Table.from_pandas(data_chunk)
-        csv.write_csv(table, sink, write_options=write_options)
-        write_options = csv.WriteOptions(include_header=False)
+for i in range(0, num_records, chunk_size):
+    data_chunk = generate_data(i, min(i + chunk_size, num_records))
+    if i == 0:
+        data_chunk.to_csv('large_dataset1Million.csv', index=False, mode='w', header=True)
+    else:
+        data_chunk.to_csv('large_dataset1Million.csv', index=False, mode='a', header=False)
 
 end_time = time.time()
 
