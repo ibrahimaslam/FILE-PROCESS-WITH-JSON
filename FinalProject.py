@@ -119,7 +119,7 @@ def specialOperationsOnCols(df, jsonObj):
                 df = df.dropna(subset=[colToCheck, colToSearch])
                 df = df[(df[colToCheck] != "") & (df[colToSearch] != "")]
                 # Filter rows where colToSearch value is contained within colToCheck value
-                df = df[df.apply(lambda row: row[colToSearch] in row[colToCheck], axis=1)]
+                df = df[df.apply(lambda row: row[colToSearch].lower() in row[colToCheck].lower(), axis=1)]
 
 
             '''if (len(columnList['retainRowIfValueContains']) > 2):
@@ -158,7 +158,7 @@ def filtered_df_for_multiple_cols(df, col_to_search, cols_to_check, condition_ty
         condition = pd.Series([False] * len(df), index=df.index)
 
     for check_col in cols_to_check:
-        sub_condition = df.apply(lambda row: pd.notna(row[check_col]) and pd.notna(row[col_to_search]) and (row[check_col] in row[col_to_search]), axis=1)
+        sub_condition = df.apply(lambda row: pd.notna(row[check_col]) and pd.notna(row[col_to_search]) and (row[check_col.lower()] in row[col_to_search].lower()), axis=1)
         sub_condition.index = df.index  # Ensure alignment of indices
         
         if condition_type == 'AND':
