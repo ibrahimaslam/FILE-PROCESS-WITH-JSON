@@ -3,12 +3,11 @@ APEX
 
 
 
-import { LightningElement, api, wire } from 'lwc';
+import { LightningElement, api, wire, track } from 'lwc';
 import { getRecord, getFieldValue } from 'lightning/uiRecordApi';
 import CLIENT_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_Name__c';
 import CLIENT_SRF_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_SRF__c';
 import CLIENT_TYPE_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_Type__c';
-import { updateRecord } from 'lightning/uiRecordApi';
 
 const FIELDS = [
     'Cash_Management_Form__c.Client_Name__c',
@@ -18,7 +17,7 @@ const FIELDS = [
 
 export default class CashManagementForm extends LightningElement {
     @api recordId; // This will be the Id of the record you want to display
-    clientType = '';
+    @track clientType = '';
 
     @wire(getRecord, { recordId: '$recordId', fields: FIELDS })
     cashManagementForm;
@@ -31,25 +30,12 @@ export default class CashManagementForm extends LightningElement {
         return getFieldValue(this.cashManagementForm.data, CLIENT_SRF_FIELD);
     }
 
-    get clientType() {
+    get clientTypeValue() {
         return getFieldValue(this.cashManagementForm.data, CLIENT_TYPE_FIELD);
     }
 
     handleClientTypeChange(event) {
         this.clientType = event.detail.value;
-        const fields = {};
-        fields.Id = this.recordId;
-        fields[CLIENT_TYPE_FIELD.fieldApiName] = this.clientType;
-
-        const recordInput = { fields };
-
-        updateRecord(recordInput)
-            .then(() => {
-                // Handle success, e.g., show a toast message
-            })
-            .catch(error => {
-                // Handle error
-            });
     }
 
     get clientTypeOptions() {
@@ -77,7 +63,6 @@ export default class CashManagementForm extends LightningElement {
 
 
 HTML
-
 
 
 <template>
