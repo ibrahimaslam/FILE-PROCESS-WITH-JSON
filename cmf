@@ -1,41 +1,60 @@
-APEX
+JS
 
-
-
-
-import { LightningElement, api, wire, track } from 'lwc';
-import { getRecord, getFieldValue } from 'lightning/uiRecordApi';
+import { LightningElement, track } from 'lwc';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { createRecord } from 'lightning/uiRecordApi';
+import CASH_MANAGEMENT_FORM_OBJECT from '@salesforce/schema/Cash_Management_Form__c';
 import CLIENT_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_Name__c';
 import CLIENT_SRF_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_SRF__c';
 import CLIENT_TYPE_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_Type__c';
 
-const FIELDS = [
-    'Cash_Management_Form__c.Client_Name__c',
-    'Cash_Management_Form__c.Client_SRF__c',
-    'Cash_Management_Form__c.Client_Type__c'
-];
-
 export default class CashManagementForm extends LightningElement {
-    @api recordId; // This will be the Id of the record you want to display
+    @track clientName = '';
+    @track clientSRF = '';
     @track clientType = '';
 
-    @wire(getRecord, { recordId: '$recordId', fields: FIELDS })
-    cashManagementForm;
-
-    get clientName() {
-        return getFieldValue(this.cashManagementForm.data, CLIENT_NAME_FIELD);
+    handleClientNameChange(event) {
+        this.clientName = event.target.value;
     }
 
-    get clientSRF() {
-        return getFieldValue(this.cashManagementForm.data, CLIENT_SRF_FIELD);
-    }
-
-    get clientTypeValue() {
-        return getFieldValue(this.cashManagementForm.data, CLIENT_TYPE_FIELD);
+    handleClientSRFChange(event) {
+        this.clientSRF = event.target.value;
     }
 
     handleClientTypeChange(event) {
         this.clientType = event.detail.value;
+    }
+
+    handleSubmit() {
+        const fields = {};
+        fields[CLIENT_NAME_FIELD.fieldApiName] = this.clientName;
+        fields[CLIENT_SRF_FIELD.fieldApiName] = this.clientSRF;
+        fields[CLIENT_TYPE_FIELD.fieldApiName] = this.clientType;
+
+        const recordInput = { apiName: CASH_MANAGEMENT_FORM_OBJECT.objectApiName, fields };
+
+        createRecord(recordInput)
+            .then(() => {
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Success',
+                        message: 'Cash Management Form created successfully',
+                        variant: 'success',
+                    }),
+                );
+                this.clientName = '';
+                this.clientSRF = '';
+                this.clientType = '';
+            })
+            .catch(error => {
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Error creating record',
+                        message: error.body.message,
+                        variant: 'error',
+                    }),
+                );
+            });
     }
 
     get clientTypeOptions() {
@@ -62,72 +81,89 @@ export default class CashManagementForm extends LightningElement {
 
 
 
-HTML
+
+
+html
+
 
 
 <template>
-    <lightning-record-view-form record-id={recordId} object-api-name="Cash_Management_Form__c">
-        <div class="slds-box slds-m-bottom_small">
-            <lightning-output-field field-name="Client_Name__c"></lightning-output-field>
-            <lightning-output-field field-name="Client_SRF__c"></lightning-output-field>
+    <lightning-card title="New Cash Management Form">
+        <div class="slds-m-around_medium">
+            <lightning-input
+                label="Client Name"
+                value={clientName}
+                onchange={handleClientNameChange}>
+            </lightning-input>
+            <lightning-input
+                label="Client SRF"
+                value={clientSRF}
+                onchange={handleClientSRFChange}>
+            </lightning-input>
+            <lightning-combobox
+                name="clientType"
+                label="Client Type"
+                value={clientType}
+                options={clientTypeOptions}
+                onchange={handleClientTypeChange}>
+            </lightning-combobox>
+
+            <template if:true={isCommercialClient}>
+                <lightning-accordion>
+                    <lightning-accordion-section name="CommonRequests" label="Common Requests">
+                        <lightning-input type="checkbox" label="Change Address"></lightning-input>
+                        <lightning-input type="checkbox" label="Change Contact Information"></lightning-input>
+                        <lightning-input type="checkbox" label="Cancel Services"></lightning-input>
+                    </lightning-accordion-section>
+                    <lightning-accordion-section name="CollectionProducts" label="Collection Products">
+                        <!-- Add specific fields for Collection Products here -->
+                    </lightning-accordion-section>
+                    <lightning-accordion-section name="PaymentsProducts" label="Payments Products">
+                        <!-- Add specific fields for Payments Products here -->
+                    </lightning-accordion-section>
+                    <lightning-accordion-section name="InformationControlProducts" label="Information & Control Products">
+                        <!-- Add specific fields for Information & Control Products here -->
+                    </lightning-accordion-section>
+                </lightning-accordion>
+            </template>
+
+            <template if:true={isGBSCClient}>
+                <lightning-accordion>
+                    <lightning-accordion-section name="RBCExpressServices" label="RBC Express Services">
+                        <lightning-input type="checkbox" label="ACH Direct Deposit"></lightning-input>
+                        <!-- Add specific fields for RBC Express Services here -->
+                    </lightning-accordion-section>
+                    <lightning-accordion-section name="BusinessBankingAPIs" label="Business Banking APIs">
+                        <!-- Add specific fields for Business Banking APIs here -->
+                    </lightning-accordion-section>
+                    <lightning-accordion-section name="InformationControlProducts" label="Information & Control Products">
+                        <!-- Add specific fields for Information & Control Products here -->
+                    </lightning-accordion-section>
+                </lightning-accordion>
+            </template>
+
+            <template if:true={isPrivateBankingClient}>
+                <lightning-accordion>
+                    <lightning-accordion-section name="CommonRequests" label="Common Requests">
+                        <lightning-input type="checkbox" label="Change Address"></lightning-input>
+                        <lightning-input type="checkbox" label="Change Contact Information"></lightning-input>
+                        <lightning-input type="checkbox" label="Cancel Services"></lightning-input>
+                    </lightning-accordion-section>
+                    <lightning-accordion-section name="PaymentsProducts" label="Payments Products">
+                        <!-- Add specific fields for Payments Products here -->
+                    </lightning-accordion-section>
+                    <lightning-accordion-section name="InformationControlProducts" label="Information & Control Products">
+                        <!-- Add specific fields for Information & Control Products here -->
+                    </lightning-accordion-section>
+                </lightning-accordion>
+            </template>
+
+            <lightning-button
+                class="slds-m-top_medium"
+                variant="brand"
+                label="Save"
+                onclick={handleSubmit}>
+            </lightning-button>
         </div>
-    </lightning-record-view-form>
-
-    <lightning-combobox
-        name="clientType"
-        label="Client Type"
-        value={clientType}
-        options={clientTypeOptions}
-        onchange={handleClientTypeChange}>
-    </lightning-combobox>
-
-    <template if:true={isCommercialClient}>
-        <lightning-accordion>
-            <lightning-accordion-section name="CommonRequests" label="Common Requests">
-                <lightning-input type="checkbox" label="Change Address"></lightning-input>
-                <lightning-input type="checkbox" label="Change Contact Information"></lightning-input>
-                <lightning-input type="checkbox" label="Cancel Services"></lightning-input>
-            </lightning-accordion-section>
-            <lightning-accordion-section name="CollectionProducts" label="Collection Products">
-                <!-- Add specific fields for Collection Products here -->
-            </lightning-accordion-section>
-            <lightning-accordion-section name="PaymentsProducts" label="Payments Products">
-                <!-- Add specific fields for Payments Products here -->
-            </lightning-accordion-section>
-            <lightning-accordion-section name="InformationControlProducts" label="Information & Control Products">
-                <!-- Add specific fields for Information & Control Products here -->
-            </lightning-accordion-section>
-        </lightning-accordion>
-    </template>
-
-    <template if:true={isGBSCClient}>
-        <lightning-accordion>
-            <lightning-accordion-section name="RBCExpressServices" label="RBC Express Services">
-                <lightning-input type="checkbox" label="ACH Direct Deposit"></lightning-input>
-                <!-- Add specific fields for RBC Express Services here -->
-            </lightning-accordion-section>
-            <lightning-accordion-section name="BusinessBankingAPIs" label="Business Banking APIs">
-                <!-- Add specific fields for Business Banking APIs here -->
-            </lightning-accordion-section>
-            <lightning-accordion-section name="InformationControlProducts" label="Information & Control Products">
-                <!-- Add specific fields for Information & Control Products here -->
-            </lightning-accordion-section>
-        </lightning-accordion>
-    </template>
-
-    <template if:true={isPrivateBankingClient}>
-        <lightning-accordion>
-            <lightning-accordion-section name="CommonRequests" label="Common Requests">
-                <lightning-input type="checkbox" label="Change Address"></lightning-input>
-                <lightning-input type="checkbox" label="Change Contact Information"></lightning-input>
-                <lightning-input type="checkbox" label="Cancel Services"></lightning-input>
-            </lightning-accordion-section>
-            <lightning-accordion-section name="PaymentsProducts" label="Payments Products">
-                <!-- Add specific fields for Payments Products here -->
-            </lightning-accordion-section>
-            <lightning-accordion-section name="InformationControlProducts" label="Information & Control Products">
-                <!-- Add specific fields for Information & Control Products here -->
-            </lightning-accordion-section>
-        </lightning-accordion>
-    </template>
+    </lightning-card>
 </template>
