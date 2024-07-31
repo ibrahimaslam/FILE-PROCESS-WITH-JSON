@@ -2,7 +2,6 @@ js
 
 
 
-
 import { LightningElement, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { createRecord } from 'lightning/uiRecordApi';
@@ -13,7 +12,7 @@ import CLIENT_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client
 import CLIENT_SRF_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_SRF__c';
 import CLIENT_TYPE_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_Type__c';
 import DATE_FIELD from '@salesforce/schema/Cash_Management_Form__c.Date__c';
-import SELECTED_PRODUCTS_FIELD from '@salesforce/schema/Cash_Management_Form__c.Selected_Products__c';
+import PRODUCTS_FIELD from '@salesforce/schema/Cash_Management_Form__c.Products__c';
 
 export default class CashManagementForm extends NavigationMixin(LightningElement) {
     @track RequestorName = '';
@@ -40,35 +39,19 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
     }
 
     handleCheckboxChange(event) {
-        const checkboxValue = event.target.label;
+        const value = event.target.label;
         if (event.target.checked) {
-            this.selectedProducts.push(checkboxValue);
+            this.selectedProducts.push(value);
         } else {
-            const index = this.selectedProducts.indexOf(checkboxValue);
-            if (index > -1) {
-                this.selectedProducts.splice(index, 1);
-            }
+            this.selectedProducts = this.selectedProducts.filter(item => item !== value);
         }
-        console.log('Selected Products:', this.selectedProducts);  // Debugging line
+        console.log('Selected Products:', this.selectedProducts); // Log for selected products
     }
 
     handleDateChange(event) {
         this.SelectedDate = event.detail.value;
     }
 
-    handleNext() {
-        console.log('Navigating with selected products:', this.selectedProducts);  // Debugging line
-        this[NavigationMixin.Navigate]({
-            type: 'standard__navItemPage',
-            attributes: {
-                apiName: 'Cash_Management_Form_Details_Page',  // Use the API name of your new Lightning App Page
-            },
-            state: {
-                c__selectedProducts: this.selectedProducts.join(';')
-            }
-        });
-    }
-    
     handleSubmit() {
         const fields = {};
         fields[REQUESTOR_NAME_FIELD.fieldApiName] = this.RequestorName;
@@ -76,7 +59,7 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
         fields[CLIENT_SRF_FIELD.fieldApiName] = this.clientSRF;
         fields[CLIENT_TYPE_FIELD.fieldApiName] = this.clientType;
         fields[DATE_FIELD.fieldApiName] = this.SelectedDate;
-        fields[SELECTED_PRODUCTS_FIELD.fieldApiName] = this.selectedProducts.join(';');
+        fields[PRODUCTS_FIELD.fieldApiName] = this.selectedProducts.join(';');
 
         const recordInput = { apiName: CASH_MANAGEMENT_FORM_OBJECT.objectApiName, fields };
 
@@ -102,6 +85,19 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
             });
     }
 
+    handleNext() {
+        console.log('Navigating with selected products:', this.selectedProducts); // Log for navigating with selected products
+        this[NavigationMixin.Navigate]({
+            type: 'standard__navItemPage',
+            attributes: {
+                apiName: 'Cash_Management_Form_Details_Page',
+            },
+            state: {
+                c__selectedProducts: this.selectedProducts.join(';')
+            }
+        });
+    }
+
     resetForm() {
         this.RequestorName = '';
         this.clientName = '';
@@ -109,10 +105,6 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
         this.clientType = '';
         this.SelectedDate = '';
         this.selectedProducts = [];
-    }
-
-    handleClickUrl() {
-        window.open('http://rbcnet.fg.rbc.com/ACH/file-828674.pdf','_blank');
     }
 
     get clientTypeOptions() {
@@ -139,15 +131,7 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
 
 
 
-
-
-
-
-
-
-
 js
-
 
 
 import { LightningElement, track } from 'lwc';
@@ -160,7 +144,7 @@ export default class Rbcpcb_CashManagementFormDetails extends NavigationMixin(Li
         const urlParams = new URLSearchParams(window.location.search);
         const selectedForms = urlParams.get('c__selectedProducts');
         
-        console.log('Retrieved selected forms:', selectedForms);  // Debugging line
+        console.log('Retrieved selected forms:', selectedForms); // Log for retrieved selected forms
         
         if (selectedForms) {
             this.selectedFormsArray = selectedForms.split(';').map(form => {
@@ -188,12 +172,7 @@ export default class Rbcpcb_CashManagementFormDetails extends NavigationMixin(Li
 }
 
 
-
-
-
-
 html
-
 
 
 
@@ -232,4 +211,3 @@ html
         <lightning-button class="slds-m-top_medium" variant="neutral" label="Back" onclick={handleBack}></lightning-button>
     </lightning-card>
 </template>
-
