@@ -1,11 +1,13 @@
 html
 
 
+
+
 <template>
     <lightning-card title="Cash Management Form Details">
         <template if:true={hasSelectedForms}>
             <template for:each={selectedFormsArray} for:item="form">
-                <div key={form}>
+                <div key={form.name}>
                     <template if:true={form.isChangeAddress}>
                         <lightning-record-edit-form object-api-name="Change_Address_Form__c">
                             <lightning-messages></lightning-messages>
@@ -31,9 +33,9 @@ html
             </template>
         </template>
         <template if:false={hasSelectedForms}>
-            <p key="no-forms-selected">No forms selected.</p>
+            <p key={noFormsSelected}>No forms selected.</p>
         </template>
-        <lightning-button class="slds-m-top_medium" variant="neutral" label="Back" onclick={handleBack} key="back-button"></lightning-button>
+        <lightning-button class="slds-m-top_medium" variant="neutral" label="Back" onclick={handleBack} key={backButton}></lightning-button>
     </lightning-card>
 </template>
 
@@ -41,6 +43,7 @@ html
 
 
 js
+
 
 
 
