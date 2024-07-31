@@ -4,9 +4,9 @@ html
 <template>
     <lightning-card title="Cash Management Form Details">
         <template if:true={hasSelectedForms}>
-            <template for:each={selectedForms} for:item="form">
+            <template for:each={selectedFormsArray} for:item="form">
                 <div key={form}>
-                    <template if:true={form === 'Change Address'}>
+                    <template if:true={isChangeAddress(form)}>
                         <lightning-record-edit-form object-api-name="Change_Address_Form__c">
                             <lightning-messages></lightning-messages>
                             <!-- Include necessary fields for Change Address form -->
@@ -17,7 +17,7 @@ html
                             <lightning-button type="submit" label="Save"></lightning-button>
                         </lightning-record-edit-form>
                     </template>
-                    <template if:true={form === 'Service Administrator'}>
+                    <template if:true={isServiceAdministrator(form)}>
                         <lightning-record-edit-form object-api-name="Service_Administrator_Form__c">
                             <lightning-messages></lightning-messages>
                             <!-- Include necessary fields for Service Administrator form -->
@@ -40,7 +40,10 @@ html
 
 
 
+
 js
+
+
 
 import { LightningElement, api, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
@@ -59,6 +62,14 @@ export default class CashManagementFormDetails extends NavigationMixin(Lightning
         return this.selectedFormsArray.length > 0;
     }
 
+    isChangeAddress(form) {
+        return form === 'Change Address';
+    }
+
+    isServiceAdministrator(form) {
+        return form === 'Service Administrator';
+    }
+
     handleBack() {
         this[NavigationMixin.Navigate]({
             type: 'standard__component',
@@ -68,5 +79,3 @@ export default class CashManagementFormDetails extends NavigationMixin(Lightning
         });
     }
 }
-
-
