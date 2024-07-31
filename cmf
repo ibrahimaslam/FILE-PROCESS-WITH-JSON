@@ -1,6 +1,7 @@
 html
 
 
+
 <template>
     <lightning-card title="Cash Management Form Details">
         <template if:true={hasSelectedForms}>
@@ -31,12 +32,11 @@ html
             </template>
         </template>
         <template if:false={hasSelectedForms}>
-            <p>No forms selected.</p>
+            <p key="no-forms-selected">No forms selected.</p>
         </template>
-        <lightning-button class="slds-m-top_medium" variant="neutral" label="Back" onclick={handleBack}></lightning-button>
+        <lightning-button class="slds-m-top_medium" variant="neutral" label="Back" onclick={handleBack} key="back-button"></lightning-button>
     </lightning-card>
 </template>
-
 
 
 
@@ -45,11 +45,13 @@ js
 
 
 
+
+
 import { LightningElement, api, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 
 export default class CashManagementFormDetails extends NavigationMixin(LightningElement) {
-    @api selectedForms = [];
+    @api selectedForms = '';
     @track selectedFormsArray = [];
 
     connectedCallback() {
