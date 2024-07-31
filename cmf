@@ -1,6 +1,46 @@
+js
+
+
+
+import { LightningElement, track } from 'lwc';
+import { NavigationMixin } from 'lightning/navigation';
+
+export default class Rbcpcb_CashManagementFormDetails extends NavigationMixin(LightningElement) {
+    @track selectedFormsArray = [];
+
+    connectedCallback() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedForms = urlParams.get('c__selectedProducts');
+        
+        if (selectedForms) {
+            this.selectedFormsArray = selectedForms.split(';').map(form => {
+                return {
+                    name: form,
+                    isChangeAddress: form === 'Change Address',
+                    isServiceAdministrator: form === 'Service Administrator'
+                };
+            });
+        }
+    }
+
+    get hasSelectedForms() {
+        return this.selectedFormsArray.length > 0;
+    }
+
+    handleBack() {
+        this[NavigationMixin.Navigate]({
+            type: 'standard__navItemPage',
+            attributes: {
+                apiName: 'Cash_Management_Form',  // The API name of your tab or page for the first LWC
+            },
+        });
+    }
+}
+
+
+
+
 html
-
-
 
 
 <template>
@@ -33,50 +73,8 @@ html
             </template>
         </template>
         <template if:false={hasSelectedForms}>
-            <p key={noFormsSelected}>No forms selected.</p>
+            <p>No forms selected.</p>
         </template>
-        <lightning-button class="slds-m-top_medium" variant="neutral" label="Back" onclick={handleBack} key={backButton}></lightning-button>
+        <lightning-button class="slds-m-top_medium" variant="neutral" label="Back" onclick={handleBack}></lightning-button>
     </lightning-card>
 </template>
-
-
-
-
-js
-
-
-
-
-import { LightningElement, api, track } from 'lwc';
-import { NavigationMixin } from 'lightning/navigation';
-
-export default class CashManagementFormDetails extends NavigationMixin(LightningElement) {
-    @api selectedForms = '';
-    @track selectedFormsArray = [];
-
-    connectedCallback() {
-        if (this.selectedForms) {
-            const forms = this.selectedForms.split(';');
-            this.selectedFormsArray = forms.map(form => {
-                return {
-                    name: form,
-                    isChangeAddress: form === 'Change Address',
-                    isServiceAdministrator: form === 'Service Administrator'
-                };
-            });
-        }
-    }
-
-    get hasSelectedForms() {
-        return this.selectedFormsArray.length > 0;
-    }
-
-    handleBack() {
-        this[NavigationMixin.Navigate]({
-            type: 'standard__component',
-            attributes: {
-                componentName: 'c__cashManagementForm',
-            },
-        });
-    }
-}
