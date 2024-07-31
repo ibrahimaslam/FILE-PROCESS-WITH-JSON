@@ -1,13 +1,12 @@
 html
 
 
-
 <template>
     <lightning-card title="Cash Management Form Details">
         <template if:true={hasSelectedForms}>
             <template for:each={selectedFormsArray} for:item="form">
                 <div key={form}>
-                    <template if:true={isChangeAddress(form)}>
+                    <template if:true={form.isChangeAddress}>
                         <lightning-record-edit-form object-api-name="Change_Address_Form__c">
                             <lightning-messages></lightning-messages>
                             <!-- Include necessary fields for Change Address form -->
@@ -18,7 +17,7 @@ html
                             <lightning-button type="submit" label="Save"></lightning-button>
                         </lightning-record-edit-form>
                     </template>
-                    <template if:true={isServiceAdministrator(form)}>
+                    <template if:true={form.isServiceAdministrator}>
                         <lightning-record-edit-form object-api-name="Service_Administrator_Form__c">
                             <lightning-messages></lightning-messages>
                             <!-- Include necessary fields for Service Administrator form -->
@@ -45,8 +44,6 @@ js
 
 
 
-
-
 import { LightningElement, api, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 
@@ -56,20 +53,19 @@ export default class CashManagementFormDetails extends NavigationMixin(Lightning
 
     connectedCallback() {
         if (this.selectedForms) {
-            this.selectedFormsArray = this.selectedForms.split(';');
+            const forms = this.selectedForms.split(';');
+            this.selectedFormsArray = forms.map(form => {
+                return {
+                    name: form,
+                    isChangeAddress: form === 'Change Address',
+                    isServiceAdministrator: form === 'Service Administrator'
+                };
+            });
         }
     }
 
     get hasSelectedForms() {
         return this.selectedFormsArray.length > 0;
-    }
-
-    isChangeAddress(form) {
-        return form === 'Change Address';
-    }
-
-    isServiceAdministrator(form) {
-        return form === 'Service Administrator';
     }
 
     handleBack() {
