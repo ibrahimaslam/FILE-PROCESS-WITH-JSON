@@ -1,94 +1,67 @@
-js
+css
 
 
-
-import { LightningElement, track } from 'lwc';
-import { NavigationMixin } from 'lightning/navigation';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-
-export default class Rbcpcb_CashManagementFormDetails extends NavigationMixin(LightningElement) {
-    @track selectedFormsArray = [];
-
-    connectedCallback() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const selectedForms = urlParams.get('c__selectedProducts');
-        
-        console.log('Retrieved selected forms:', selectedForms); // Log for retrieved selected forms
-        
-        if (selectedForms) {
-            this.selectedFormsArray = selectedForms.split(';').map(form => {
-                return {
-                    name: form,
-                    isChangeAddress: form === 'Change Address',
-                    isServiceAdministrator: form === 'Service Administrator'
-                };
-            });
-        }
-    }
-
-    get hasSelectedForms() {
-        return this.selectedFormsArray.length > 0;
-    }
-
-    handleBack() {
-        this[NavigationMixin.Navigate]({
-            type: 'standard__navItemPage',
-            attributes: {
-                apiName: 'Cash_Management_Form',  // The API name of your tab or page for the first LWC
-            },
-        });
-    }
-
-    handleSubmit(event) {
-        event.preventDefault();
-        const fields = event.detail.fields;
-
-        this.template.querySelectorAll('lightning-record-edit-form').forEach(form => {
-            form.submit(fields);
-        });
-    }
-
-    handleSuccess() {
-        this.dispatchEvent(
-            new ShowToastEvent({
-                title: 'Success',
-                message: 'Forms submitted successfully',
-                variant: 'success',
-            }),
-        );
-
-        this[NavigationMixin.Navigate]({
-            type: 'standard__recordPage',
-            attributes: {
-                recordId: this.recordId,
-                objectApiName: 'Cash_Management_Form__c',
-                actionName: 'view',
-            },
-        });
-    }
-
-    handleError(event) {
-        this.dispatchEvent(
-            new ShowToastEvent({
-                title: 'Error submitting form',
-                message: event.detail.message,
-                variant: 'error',
-            }),
-        );
-    }
+.slds-card__header-title {
+    font-size: 1.25rem;
+    font-weight: bold;
 }
 
+.slds-m-around_small {
+    margin: 1rem;
+}
+
+.slds-m-around_medium {
+    margin: 2rem;
+}
+
+.slds-m-top_medium {
+    margin-top: 2rem;
+}
+
+.subheading {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.notes {
+    font-style: italic;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+.lightning-button {
+    margin-top: 1rem;
+}
+
+.section-header {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.section-divider {
+    border: 1px solid #ddd;
+    margin-bottom: 2rem;
+}
+
+.clickable {
+    color: #1a73e8;
+    cursor: pointer;
+    text-decoration: underline;
+}
 
 
 
 html
 
 
+
 <template>
     <lightning-card title="Cash Management Form Details">
         <template if:true={hasSelectedForms}>
             <template for:each={selectedFormsArray} for:item="form">
-                <div key={form.name}>
+                <div key={form.name} class="slds-m-around_medium">
                     <template if:true={form.isChangeAddress}>
                         <lightning-record-edit-form 
                             object-api-name="Change_Address_Form__c" 
@@ -99,7 +72,7 @@ html
                             <lightning-input-field field-name="City__c"></lightning-input-field>
                             <lightning-input-field field-name="State__c"></lightning-input-field>
                             <lightning-input-field field-name="Postal_Code__c"></lightning-input-field>
-                            <lightning-button type="submit" label="Save"></lightning-button>
+                            <lightning-button type="submit" label="Save" class="lightning-button"></lightning-button>
                         </lightning-record-edit-form>
                     </template>
                     <template if:true={form.isServiceAdministrator}>
@@ -111,7 +84,7 @@ html
                             <lightning-input-field field-name="Admin_Name__c"></lightning-input-field>
                             <lightning-input-field field-name="Admin_Email__c"></lightning-input-field>
                             <lightning-input-field field-name="Admin_Phone__c"></lightning-input-field>
-                            <lightning-button type="submit" label="Save"></lightning-button>
+                            <lightning-button type="submit" label="Save" class="lightning-button"></lightning-button>
                         </lightning-record-edit-form>
                     </template>
                 </div>
