@@ -26,11 +26,11 @@ export default class Rbcpcb_CashManagementForm extends NavigationMixin(Lightning
     }
 
     handleClientNameChange(event) {
-        this.clientName = event.detail.value;
+        this.clientName = event.target.value;
     }
 
     handleClientSRFChange(event) {
-        this.clientSRF = event.detail.value;
+        this.clientSRF = event.target.value;
     }
 
     handleClientTypeChange(event) {
@@ -38,11 +38,14 @@ export default class Rbcpcb_CashManagementForm extends NavigationMixin(Lightning
     }
 
     handleCheckboxChange(event) {
-        const value = event.target.label;
+        const product = event.target.label;
         if (event.target.checked) {
-            this.selectedProducts.push(value);
+            this.selectedProducts.push(product);
         } else {
-            this.selectedProducts = this.selectedProducts.filter(item => item !== value);
+            const index = this.selectedProducts.indexOf(product);
+            if (index > -1) {
+                this.selectedProducts.splice(index, 1);
+            }
         }
     }
 
@@ -50,28 +53,30 @@ export default class Rbcpcb_CashManagementForm extends NavigationMixin(Lightning
         this.SelectedDate = event.detail.value;
     }
 
-    handleNext() {
-        const selectedProducts = this.selectedProducts.join(',');
-
-        const fields = {
-            [REQUESTOR_NAME_FIELD.fieldApiName]: this.RequestorName,
-            [CLIENT_NAME_FIELD.fieldApiName]: this.clientName,
-            [CLIENT_SRF_FIELD.fieldApiName]: this.clientSRF,
-            [CLIENT_TYPE_FIELD.fieldApiName]: this.clientType,
-            [DATE_FIELD.fieldApiName]: this.SelectedDate,
-            [MAINTENANCE_PRODUCTS_FIELD.fieldApiName]: selectedProducts
-        };
+    handleSubmit() {
+        const fields = {};
+        fields[REQUESTOR_NAME_FIELD.fieldApiName] = this.RequestorName;
+        fields[CLIENT_NAME_FIELD.fieldApiName] = this.clientName;
+        fields[CLIENT_SRF_FIELD.fieldApiName] = this.clientSRF;
+        fields[CLIENT_TYPE_FIELD.fieldApiName] = this.clientType;
+        fields[DATE_FIELD.fieldApiName] = this.SelectedDate;
+        fields[MAINTENANCE_PRODUCTS_FIELD.fieldApiName] = this.selectedProducts.join(',');
 
         const recordInput = { apiName: CASH_MANAGEMENT_FORM_OBJECT.objectApiName, fields };
 
         createRecord(recordInput)
-            .then(record => {
-                const recordId = record.id;
-                this.dispatchEvent(new CustomEvent('navigate', {
-                    detail: { recordId: recordId }
-                }));
+            .then((record) => {
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Success',
+                        message: 'Cash Management Form created successfully',
+                        variant: 'success',
+                    })
+                );
+                this.resetForm();
+                this.navigateToDetailsPage(record.id);
             })
-            .catch(error => {
+            .catch((error) => {
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title: 'Error creating record',
@@ -80,6 +85,21 @@ export default class Rbcpcb_CashManagementForm extends NavigationMixin(Lightning
                     })
                 );
             });
+    }
+
+    handleNext() {
+        this.handleSubmit();
+    }
+
+    navigateToDetailsPage(recordId) {
+        this[NavigationMixin.Navigate]({
+            type: 'standard__recordPage',
+            attributes: {
+                recordId: recordId,
+                objectApiName: 'Cash_Management_Form__c',
+                actionName: 'view',
+            },
+        });
     }
 
     resetForm() {
@@ -119,10 +139,7 @@ export default class Rbcpcb_CashManagementForm extends NavigationMixin(Lightning
 
 
 
-
-
 html
-
 
 
 <template>
@@ -133,16 +150,16 @@ html
                 value={RequestorName}
                 onchange={handleRequestorNameChange}>
             </lightning-input>
-            <lightning-input-field
-                field-name="Client_Name__c"
+            <lightning-input
+                label="Client Name"
                 value={clientName}
                 onchange={handleClientNameChange}>
-            </lightning-input-field>
-            <lightning-input-field
-                field-name="Client_SRF__c"
+            </lightning-input>
+            <lightning-input
+                label="Client SRF"
                 value={clientSRF}
                 onchange={handleClientSRFChange}>
-            </lightning-input-field>
+            </lightning-input>
             <lightning-input
                 label="Select a Date"
                 type="date"
@@ -228,73 +245,6 @@ html
                     </lightning-accordion-section>
                 </lightning-accordion>
             </template>
-            <template if:true={isGBSCClient}>
-                <lightning-accordion>
-                    <lightning-accordion-section name="CommonRequests" label="Common Requests">
-                        <lightning-input type="checkbox" label="Change Address" onchange={handleCheckboxChange}></lightning-input>
-                        <lightning-input type="checkbox" label="Change Contact Information" onchange={handleCheckboxChange}></lightning-input>
-                        <lightning-input type="checkbox" label="Cancel Services" onchange={handleCheckboxChange}></lightning-input>
-                    </lightning-accordion-section>
-                    <lightning-accordion-section name="RBCExpressServices" label="RBC Express Services">
-                        <div class="slds-m-around_small">
-                            <h3 class="subheading">Accounts</h3>
-                            <lightning-input type="checkbox" label="ACH Accounts" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="ACH Direct Deposit" onchange={handleCheckboxChange}></lightning-input>
-                            <div class="notes">Either: -Prefunding Option One Time Override <br> -or- -Request for Temporary Additional Daily Limit</div>
-                            <lightning-input type="checkbox" label="Non-Owned (MLE) Accounts" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Non-SRF Accounts (Trustee Accounts)" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Owned Accounts" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Owned Accounts - Set Defaults When Accounts are Automatically Added" onchange={handleCheckboxChange}></lightning-input>
-                        </div>
-                        <div class="slds-m-around_small">
-                            <h3 class="subheading">Site Operations</h3>
-                            <lightning-input type="checkbox" label="Service Administrator" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Set Mobile Access" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Single/Dual Administration" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Tokens - Order, Remove or Move" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Two Factor Authentication" onchange={handleCheckboxChange}></lightning-input>
-                        </div>
-                        <div class="slds-m-around_small">
-                            <h3 class="subheading">Other</h3>
-                            <lightning-input type="checkbox" label="Account Transfers/Wires/Bill Payments - Funds Availability Changes" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Company Name Change" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Balance Reporting (BROPT) - Switch Option" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Bill Payments – Enable or Disable Token Authentication (2FA)" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Billing Option (Standard and MLE)" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Chargeback Reporting Service - Billing Option Change" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Cheque-Pro - Maintenance" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Interac e-Transfer Autodeposit" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Modify FX Tier" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Monthly Business Fee Statement (BCRMS)" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="RBC Statements – Paper Statements" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Switch client to direct booking for Account Transfers and Wire Payments modules" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Wire Payments - Billing Option Change" onchange={handleCheckboxChange}></lightning-input>
-                        </div>
-                    </lightning-accordion-section>
-                    <lightning-accordion-section name="CollectionProducts" label="Collection Products">
-                        <lightning-input type="checkbox" label="Lockbox Receivables Service" onchange={handleCheckboxChange}></lightning-input>
-                        <lightning-input type="checkbox" label="Corporate Creditor" onchange={handleCheckboxChange}></lightning-input>
-                        <lightning-input type="checkbox" label="E-Commerce - Payment Receiver" onchange={handleCheckboxChange}></lightning-input>
-                    </lightning-accordion-section>
-                    <lightning-accordion-section name="PaymentProducts" label="Payments Products">
-                        <lightning-input type="checkbox" label="ACH Direct Deposit" onchange={handleCheckboxChange}></lightning-input>
-                        <lightning-input type="checkbox" label="Interac e-Transfer Bulk Services" onchange={handleCheckboxChange}></lightning-input>
-                        <lightning-input type="checkbox" label="Business Document Solutions (Cheque Issuance)" onchange={handleCheckboxChange}></lightning-input>
-                        <div class="notes">Click to access the <span class="clickable" onclick={handleClickUrl}>ACH Cross Border</span> form (this is an independent form and will open in a separate window)</div>
-                        <lightning-input type="checkbox" label="E-Commerce - Payment Originator (including Bill Payment Remittance Service)" onchange={handleCheckboxChange}></lightning-input>
-                        <lightning-input type="checkbox" label="Fast√Chek" onchange={handleCheckboxChange}></lightning-input>
-                        <lightning-input type="checkbox" label="Send MT101" onchange={handleCheckboxChange}></lightning-input>
-                        <lightning-input type="checkbox" label="Receive MT101 and Other Services" onchange={handleCheckboxChange}></lightning-input>
-                    </lightning-accordion-section>
-                    <lightning-accordion-section name="InformationControlProducts" label="Information & Control Products">
-                        <lightning-input type="checkbox" label="Payments Administration (Client Enrolment and Payments Administration System (CEPAS))" onchange={handleCheckboxChange}></lightning-input>
-                        <lightning-input type="checkbox" label="RBC Payee Match" onchange={handleCheckboxChange}></lightning-input>
-                    </lightning-accordion-section>
-                    <lightning-accordion-section name="BusinessBankingApis" label="Business Banking APIs">
-                        <lightning-input type="checkbox" label="RBC Move Money API via Interac e-Transfer" onchange={handleCheckboxChange}></lightning-input>
-                    </lightning-accordion-section>
-                </lightning-accordion>
-            </template>
             <lightning-button
                 class="slds-m-top_medium"
                 variant="brand"
@@ -314,11 +264,7 @@ html
 
 
 
-
-
-
 js
-
 
 
 
@@ -361,7 +307,7 @@ export default class Rbcpcb_CashManagementFormDetails extends LightningElement {
             apiName: 'ChildObject__c',
             fields: {
                 ...fields,
-                ParentObject__c: this.recordId // Relate to the parent record
+                Cash_Management_Form__c: this.recordId // Relate to the parent record
             }
         };
 
@@ -394,11 +340,7 @@ export default class Rbcpcb_CashManagementFormDetails extends LightningElement {
 
 
 
-
-
 html
-
-
 
 
 
