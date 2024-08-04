@@ -1,3 +1,7 @@
+html
+
+
+
 <template>
     <lightning-card title="New Cash Management Form">
         <div class="slds-m-around_medium">
@@ -6,16 +10,10 @@
                 value={RequestorName}
                 onchange={handleRequestorNameChange}>
             </lightning-input>
-            <lightning-input-field
-                label="Client Name"
-                field-name="Client_Name__c"
-                value={clientName}
-                onchange={handleClientNameChange}>
-            </lightning-input-field>
             <lightning-input
                 label="Client SRF"
                 value={clientSRF}
-                readonly>
+                onchange={handleClientSRFChange}>
             </lightning-input>
             <lightning-input
                 label="Select a Date"
@@ -45,7 +43,6 @@
                     <lightning-accordion-section name="RBCExpressServices" label="RBC Express Services">
                         <div class="slds-m-around_small">
                             <h3 class="subheading">Accounts</h3>
-                            <lightning-input type="checkbox" label="ACH Accounts" onchange={handleCheckboxChange}></lightning-input>
                             <lightning-input type="checkbox" label="ACH Direct Deposit" onchange={handleCheckboxChange}></lightning-input>
                             <div class="notes">Either: -Prefunding Option One Time Override <br> -or- -Request for Temporary Additional Daily Limit</div>
                             <lightning-input type="checkbox" label="Non-Owned (MLE) Accounts" onchange={handleCheckboxChange}></lightning-input>
@@ -116,24 +113,7 @@
                             <lightning-input type="checkbox" label="ACH Direct Deposit" onchange={handleCheckboxChange}></lightning-input>
                             <div class="notes">Either: -Prefunding Option One Time Override <br> -or- -Request for Temporary Additional Daily Limit</div>
                             <lightning-input type="checkbox" label="Non-Owned (MLE) Accounts" onchange={handleCheckboxChange}></lightning-input>
-                            <lightning-input type="checkbox" label="Non
-                        </div>
-                    </lightning-accordion-section>
-                </lightning-accordion>
-            </template>
-            <template if:true={isPrivateBankingClient}>
-                <lightning-accordion>
-                    <lightning-accordion-section name="CommonRequests" label="Common Requests">
-                        <lightning-input type="checkbox" label="Change Address" onchange={handleCheckboxChange}></lightning-input>
-                        <lightning-input type="checkbox" label="Change Contact Information" onchange={handleCheckboxChange}></lightning-input>
-                        <lightning-input type="checkbox" label="Cancel Services" onchange={handleCheckboxChange}></lightning-input>
-                    </lightning-accordion-section>
-                    <lightning-accordion-section name="RBCExpressServices" label="RBC Express Services">
-                        <div class="slds-m-around_small">
-                            <h3 class="subheading">Accounts</h3>
-                            <lightning-input type="checkbox" label="ACH Direct Deposit" onchange={handleCheckboxChange}></lightning-input>
-                            <div class="notes">Either: -Prefunding Option One Time Override <br> -or- -Request for Temporary Additional Daily Limit</div>
-                            <lightning-input type="checkbox" label="Non-Owned (MLE) Accounts" onchange={handleCheckboxChange}></lightning-input>
+                            <lightning-input type="checkbox" label="Non-SRF Accounts (Trustee Accounts)" onchange={handleCheckboxChange}></lightning-input>
                             <lightning-input type="checkbox" label="Owned Accounts" onchange={handleCheckboxChange}></lightning-input>
                             <lightning-input type="checkbox" label="Owned Accounts - Set Defaults When Accounts are Automatically Added" onchange={handleCheckboxChange}></lightning-input>
                         </div>
@@ -186,6 +166,37 @@
                     </lightning-accordion-section>
                 </lightning-accordion>
             </template>
+            <template if:true={isPrivateBankingClient}>
+                <lightning-accordion>
+                    <lightning-accordion-section name="CommonRequests" label="Common Requests">
+                        <lightning-input type="checkbox" label="Change Address" onchange={handleCheckboxChange}></lightning-input>
+                        <lightning-input type="checkbox" label="Change Contact Information" onchange={handleCheckboxChange}></lightning-input>
+                        <lightning-input type="checkbox" label="Cancel Services" onchange={handleCheckboxChange}></lightning-input>
+                    </lightning-accordion-section>
+                    <lightning-accordion-section name="RBCExpressServices" label="RBC Express Services">
+                        <div class="slds-m-around_small">
+                            <h3 class="subheading">Accounts</h3>
+                            <lightning-input type="checkbox" label="ACH Direct Deposit" onchange={handleCheckboxChange}></lightning-input>
+                            <div class="notes">Either: -Prefunding Option One Time Override <br> -or- -Request for Temporary Additional Daily Limit</div>
+                            <lightning-input type="checkbox" label="Non-Owned (MLE) Accounts" onchange={handleCheckboxChange}></lightning-input>
+                            <lightning-input type="checkbox" label="Owned Accounts" onchange={handleCheckboxChange}></lightning-input>
+                            <lightning-input type="checkbox" label="Owned Accounts - Set Defaults When Accounts are Automatically Added" onchange={handleCheckboxChange}></lightning-input>
+                        </div>
+                        <div class="slds-m-around_small">
+                            <h3 class="subheading">Site Operations</h3>
+                            <lightning-input type="checkbox" label="Service Administrator" onchange={handleCheckboxChange}></lightning-input>
+                            <lightning-input type="checkbox" label="Set Mobile Access" onchange={handleCheckboxChange}></lightning-input>
+                            <lightning-input type="checkbox" label="Single/Dual Administration" onchange={handleCheckboxChange}></lightning-input>
+                            <lightning-input type="checkbox" label="Tokens - Order, Remove or Move" onchange={handleCheckboxChange}></lightning-input>
+                            <lightning-input type="checkbox" label="Two Factor Authentication" onchange={handleCheckboxChange}></lightning-input>
+                            <lightning-input type="checkbox" label="Interac e-Transfer Autodeposit" onchange={handleCheckboxChange}></lightning-input>
+                        </div>
+                    </lightning-accordion-section>
+                    <lightning-accordion-section name="PaymentProducts" label="Payments Products">
+                        <lightning-input type="checkbox" label="ACH Direct Deposit" onchange={handleCheckboxChange}></lightning-input>
+                    </lightning-accordion-section>
+                </lightning-accordion>
+            </template>
             <lightning-button
                 class="slds-m-top_medium"
                 variant="brand"
@@ -206,6 +217,42 @@
 
 
 
+css
+
+
+
+.slds-m-around_medium {
+    margin: 1rem;
+}
+
+.section-header {
+    margin-top: 1rem;
+}
+
+.section-divider {
+    margin: 1rem 0;
+}
+
+.subheading {
+    font-weight: bold;
+}
+
+.notes {
+    margin-top: 0.5rem;
+    color: gray;
+}
+
+.clickable {
+    color: blue;
+    cursor: pointer;
+}
+
+.clickable:hover {
+    text-decoration: underline;
+}
+
+
+
 
 js
 
@@ -215,12 +262,13 @@ import { LightningElement, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { createRecord } from 'lightning/uiRecordApi';
 import { NavigationMixin } from 'lightning/navigation';
-import CASH_MANAGEMENT_FORM_OBJECT from '@salesforce/schema/Cash_Management_Form__c';
-import REQUESTOR_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Requestor_Name__c';
+import ACCOUNT_OBJECT from '@salesforce/schema/Account';
 import CLIENT_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_Name__c';
+import REQUESTOR_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Requestor_Name__c';
+import CLIENT_SRF_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_SRF__c';
 import CLIENT_TYPE_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_Type__c';
 import DATE_FIELD from '@salesforce/schema/Cash_Management_Form__c.Date__c';
-import MAINTENANCE_PRODUCTS_FIELD from '@salesforce/schema/Cash_Management_Form__c.Maintenance_Products__c';
+import CASH_MANAGEMENT_FORM_OBJECT from '@salesforce/schema/Cash_Management_Form__c';
 
 export default class CashManagementForm extends NavigationMixin(LightningElement) {
     @track RequestorName = '';
@@ -236,15 +284,42 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
 
     handleClientNameChange(event) {
         this.clientName = event.detail.value;
-        // Add logic to fetch SRF value from Account based on selected clientName
+        this.setClientSRF();
+    }
+
+    setClientSRF() {
+        if (this.clientName) {
+            getRecord({ recordId: this.clientName, fields: [CLIENT_SRF_FIELD] })
+                .then(record => {
+                    this.clientSRF = record.fields.SRF__c.value;
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        } else {
+            this.clientSRF = '';
+        }
+    }
+
+    handleClientSRFChange(event) {
+        this.clientSRF = event.target.value;
+    }
+
+    handleClientTypeChange(event) {
+        this.clientType = event.detail.value;
     }
 
     handleCheckboxChange(event) {
-        const { label, checked } = event.target;
-        if (checked) {
-            this.selectedProducts.push(label);
+        const label = event.target.label;
+        if (event.target.checked) {
+            if (!this.selectedProducts.includes(label)) {
+                this.selectedProducts.push(label);
+            }
         } else {
-            this.selectedProducts = this.selectedProducts.filter(item => item !== label);
+            const index = this.selectedProducts.indexOf(label);
+            if (index > -1) {
+                this.selectedProducts.splice(index, 1);
+            }
         }
     }
 
@@ -252,30 +327,27 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
         this.SelectedDate = event.detail.value;
     }
 
-    handleClientTypeChange(event) {
-        this.clientType = event.detail.value;
-    }
-
     handleSubmit() {
         const fields = {};
         fields[REQUESTOR_NAME_FIELD.fieldApiName] = this.RequestorName;
         fields[CLIENT_NAME_FIELD.fieldApiName] = this.clientName;
+        fields[CLIENT_SRF_FIELD.fieldApiName] = this.clientSRF;
         fields[CLIENT_TYPE_FIELD.fieldApiName] = this.clientType;
         fields[DATE_FIELD.fieldApiName] = this.SelectedDate;
-        fields[MAINTENANCE_PRODUCTS_FIELD.fieldApiName] = this.selectedProducts.join(',');
+        fields['Maintenance_Products__c'] = this.selectedProducts.join(',');
 
         const recordInput = { apiName: CASH_MANAGEMENT_FORM_OBJECT.objectApiName, fields };
 
         createRecord(recordInput)
-            .then(record => {
+            .then(() => {
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title: 'Success',
                         message: 'Cash Management Form created successfully',
                         variant: 'success',
-                    }),
+                    })
                 );
-                this.navigateNext(record.id);
+                this.resetForm();
             })
             .catch(error => {
                 this.dispatchEvent(
@@ -283,30 +355,42 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
                         title: 'Error creating record',
                         message: error.body.message,
                         variant: 'error',
-                    }),
+                    })
                 );
             });
     }
 
     handleNext() {
-        this.handleSubmit();
+        const state = {
+            c__selectedProducts: this.selectedProducts.join(','),
+            c__recordId: this.recordId
+        };
+
+        this[NavigationMixin.Navigate]({
+            type: 'standard__navItemPage',
+            attributes: {
+                apiName: 'Cash_Management_Form_Details_Page'
+            },
+            state: state
+        });
     }
 
-    navigateNext(recordId) {
-        this[NavigationMixin.Navigate]({
-            type: 'standard__component',
-            attributes: {
-                componentName: 'c__CashManagementFormDetails',
-            },
-            state: {
-                c__recordId: recordId,
-            },
-        });
+    resetForm() {
+        this.RequestorName = '';
+        this.clientName = '';
+        this.clientSRF = '';
+        this.clientType = '';
+        this.SelectedDate = '';
+        this.selectedProducts = [];
+    }
+
+    handleClickUrl() {
+        window.open('http://rbcnet.fg.rbc.com/ACH/file-828674.pdf', '_blank');
     }
 
     get clientTypeOptions() {
         return [
-            { label: 'Commercial Financial Services Client', value: 'Commercial Financial Services Client'},
+            { label: 'Commercial Financial Services Client', value: 'Commercial Financial Services Client' },
             { label: 'GBSC Serviced Client', value: 'GBSC Serviced Client' },
             { label: 'Private Banking CBR Client', value: 'Private Banking CBR Client' },
         ];
@@ -324,4 +408,3 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
         return this.clientType === 'Private Banking CBR Client';
     }
 }
-
