@@ -1,10 +1,11 @@
 js
 
 
+
 import { LightningElement, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { createRecord } from 'lightning/uiRecordApi';
 import { NavigationMixin } from 'lightning/navigation';
+import { createRecord } from 'lightning/uiRecordApi';
 import CASH_MANAGEMENT_FORM_OBJECT from '@salesforce/schema/Cash_Management_Form__c';
 import REQUESTOR_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Requestor_Name__c';
 import CLIENT_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_Name__c';
@@ -15,22 +16,12 @@ import MAINTENANCE_PRODUCTS_FIELD from '@salesforce/schema/Cash_Management_Form_
 
 export default class Rbcpcb_CashManagementForm extends NavigationMixin(LightningElement) {
     @track RequestorName = '';
-    @track clientName = '';
-    @track clientSRF = '';
     @track clientType = '';
     @track SelectedDate = '';
     @track selectedProducts = [];
 
     handleRequestorNameChange(event) {
         this.RequestorName = event.target.value;
-    }
-
-    handleClientNameChange(event) {
-        this.clientName = event.target.value;
-    }
-
-    handleClientSRFChange(event) {
-        this.clientSRF = event.target.value;
     }
 
     handleClientTypeChange(event) {
@@ -56,8 +47,6 @@ export default class Rbcpcb_CashManagementForm extends NavigationMixin(Lightning
     handleSubmit() {
         const fields = {};
         fields[REQUESTOR_NAME_FIELD.fieldApiName] = this.RequestorName;
-        fields[CLIENT_NAME_FIELD.fieldApiName] = this.clientName;
-        fields[CLIENT_SRF_FIELD.fieldApiName] = this.clientSRF;
         fields[CLIENT_TYPE_FIELD.fieldApiName] = this.clientType;
         fields[DATE_FIELD.fieldApiName] = this.SelectedDate;
         fields[MAINTENANCE_PRODUCTS_FIELD.fieldApiName] = this.selectedProducts.join(',');
@@ -93,19 +82,18 @@ export default class Rbcpcb_CashManagementForm extends NavigationMixin(Lightning
 
     navigateToDetailsPage(recordId) {
         this[NavigationMixin.Navigate]({
-            type: 'standard__recordPage',
+            type: 'standard__navItemPage',
             attributes: {
-                recordId: recordId,
-                objectApiName: 'Cash_Management_Form__c',
-                actionName: 'view',
+                apiName: 'Cash_Management_Form_Details_Page',
+            },
+            state: {
+                c__recordId: recordId
             },
         });
     }
 
     resetForm() {
         this.RequestorName = '';
-        this.clientName = '';
-        this.clientSRF = '';
         this.clientType = '';
         this.SelectedDate = '';
         this.selectedProducts = [];
@@ -139,6 +127,7 @@ export default class Rbcpcb_CashManagementForm extends NavigationMixin(Lightning
 
 
 
+
 html
 
 
@@ -150,16 +139,10 @@ html
                 value={RequestorName}
                 onchange={handleRequestorNameChange}>
             </lightning-input>
-            <lightning-input
-                label="Client Name"
-                value={clientName}
-                onchange={handleClientNameChange}>
-            </lightning-input>
-            <lightning-input
-                label="Client SRF"
-                value={clientSRF}
-                onchange={handleClientSRFChange}>
-            </lightning-input>
+            <lightning-record-edit-form object-api-name="Cash_Management_Form__c">
+                <lightning-input-field field-name="Client_Name__c"></lightning-input-field>
+                <lightning-input-field field-name="Client_SRF__c"></lightning-input-field>
+            </lightning-record-edit-form>
             <lightning-input
                 label="Select a Date"
                 type="date"
@@ -264,13 +247,14 @@ html
 
 
 
+
+
 js
 
 
 
 import { LightningElement, api, track, wire } from 'lwc';
 import { getRecord } from 'lightning/uiRecordApi';
-import CASH_MANAGEMENT_FORM_OBJECT from '@salesforce/schema/Cash_Management_Form__c';
 import MAINTENANCE_PRODUCTS_FIELD from '@salesforce/schema/Cash_Management_Form__c.Maintenance_Products__c';
 import { createRecord } from 'lightning/uiRecordApi';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
@@ -300,7 +284,6 @@ export default class Rbcpcb_CashManagementFormDetails extends LightningElement {
     }
 
     handleSave() {
-        // Save logic for child objects related to the parent record
         const fields = {}; // Set the fields for the child objects here
 
         const recordInput = {
@@ -340,6 +323,7 @@ export default class Rbcpcb_CashManagementFormDetails extends LightningElement {
 
 
 
+
 html
 
 
@@ -373,3 +357,4 @@ html
         </lightning-card>
     </template>
 </template>
+
