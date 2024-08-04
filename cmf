@@ -1,7 +1,6 @@
 import { LightningElement, track, wire } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { createRecord } from 'lightning/uiRecordApi';
-import { getRecord } from 'lightning/uiRecordApi';
+import { createRecord, getRecord } from 'lightning/uiRecordApi';
 import ACCOUNT_OBJECT from '@salesforce/schema/Account';
 import CASH_MANAGEMENT_FORM_OBJECT from '@salesforce/schema/Cash_Management_Form__c';
 import REQUESTOR_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Requestor_Name__c';
@@ -10,6 +9,8 @@ import CLIENT_SRF_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_
 import CLIENT_TYPE_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_Type__c';
 import DATE_FIELD from '@salesforce/schema/Cash_Management_Form__c.Date__c';
 import { NavigationMixin } from 'lightning/navigation';
+
+const ACCOUNT_FIELDS = ['Account.SRF__c'];
 
 export default class CashManagementForm extends NavigationMixin(LightningElement) {
     @track RequestorName = '';
@@ -25,9 +26,8 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
 
     handleClientNameChange(event) {
         this.clientName = event.detail.value;
-        // Call the wire service to get the SRF value
         if (this.clientName) {
-            getRecord({ recordId: this.clientName, fields: ['Account.SRF__c'] })
+            getRecord({ recordId: this.clientName, fields: ACCOUNT_FIELDS })
                 .then(record => {
                     this.clientSRF = record.fields.SRF__c.value;
                 })
@@ -60,10 +60,23 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
         this.SelectedDate = event.detail.value;
     }
 
+    handleNext() {
+        this[NavigationMixin.Navigate]({
+            type: 'standard__navItemPage',
+            attributes: {
+                apiName: 'Cash_Management_Form_Details_Page',
+            },
+            state: {
+                c__recordId: this.recordId,
+                c__selectedProducts: this.selectedProducts.join(',')
+            }
+        });
+    }
+
     handleSubmit() {
         const fields = {};
         fields[REQUESTOR_NAME_FIELD.fieldApiName] = this.RequestorName;
-        fields[CLIENT_NAME_FIELD.fieldApiName] = this.clientName;  // Ensure this holds Account ID
+        fields[CLIENT_NAME_FIELD.fieldApiName] = this.clientName;
         fields[CLIENT_SRF_FIELD.fieldApiName] = this.clientSRF;
         fields[CLIENT_TYPE_FIELD.fieldApiName] = this.clientType;
         fields[DATE_FIELD.fieldApiName] = this.SelectedDate;
@@ -80,7 +93,6 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
                     }),
                 );
                 this.resetForm();
-                // Navigate to next LWC with recordId and selectedProducts
                 this[NavigationMixin.Navigate]({
                     type: 'standard__navItemPage',
                     attributes: {
@@ -112,8 +124,8 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
         this.selectedProducts = [];
     }
 
-    handleClickUrl(){
-        window.open('http://rbcnet.fg.rbc.com/ACH/file-828674.pdf','_blank');
+    handleClickUrl() {
+        window.open('http://rbcnet.fg.rbc.com/ACH/file-828674.pdf', '_blank');
     }
 
     get clientTypeOptions() {
