@@ -44,7 +44,7 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
     handleSubmit() {
         const fields = {};
         fields[REQUESTOR_NAME_FIELD.fieldApiName] = this.RequestorName;
-        fields[CLIENT_NAME_FIELD.fieldApiName] = this.clientName;
+        fields[CLIENT_NAME_FIELD.fieldApiName] = this.clientName[0];  // Ensure clientName is set as a single value
         fields[CLIENT_TYPE_FIELD.fieldApiName] = this.clientType;
         fields[DATE_FIELD.fieldApiName] = this.SelectedDate;
         fields[MAINTENANCE_PRODUCTS_FIELD.fieldApiName] = this.selectedProducts.join(',');
@@ -121,4 +121,45 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
     get isPrivateBankingClient() {
         return this.clientType === 'Private Banking CBR Client';
     }
+}
+
+
+
+
+
+css
+
+.slds-m-around_small {
+    margin: 1rem;
+}
+
+.section-header h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.section-divider {
+    border-top: 1px solid #d8dde6;
+    margin-bottom: 1rem;
+}
+
+.subheading {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.notes {
+    font-style: italic;
+    color: #636363;
+    margin-top: 0.5rem;
+}
+
+.clickable {
+    color: #1a73e8;
+    cursor: pointer;
+}
+
+.clickable:hover {
+    text-decoration: underline;
 }
