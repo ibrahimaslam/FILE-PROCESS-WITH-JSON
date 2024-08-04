@@ -12,8 +12,7 @@
             <lightning-input
                 label="Client SRF"
                 value={clientSRF}
-                onchange={handleClientSRFChange}
-                readonly>
+                onchange={handleClientSRFChange}>
             </lightning-input>
             <lightning-input
                 label="Select a Date"
@@ -218,12 +217,15 @@
 
 
 
-js
+
+jss
 
 
-import { LightningElement, track, wire } from 'lwc';
+
+
+import { LightningElement, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { createRecord, getRecord } from 'lightning/uiRecordApi';
+import { createRecord } from 'lightning/uiRecordApi';
 import { NavigationMixin } from 'lightning/navigation';
 import CLIENT_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_Name__c';
 import REQUESTOR_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Requestor_Name__c';
@@ -247,21 +249,6 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
 
     handleClientNameChange(event) {
         this.clientName = event.detail.value;
-        this.setClientSRF();
-    }
-
-    setClientSRF() {
-        if (this.clientName) {
-            getRecord({ recordId: this.clientName, fields: [CLIENT_SRF_FIELD] })
-                .then(record => {
-                    this.clientSRF = record.fields.SRF__c.value;
-                })
-                .catch(error => {
-                    console.error(error);
-                });
-        } else {
-            this.clientSRF = '';
-        }
     }
 
     handleClientSRFChange(event) {
@@ -373,5 +360,3 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
         return this.clientType === 'Private Banking CBR Client';
     }
 }
-
-
