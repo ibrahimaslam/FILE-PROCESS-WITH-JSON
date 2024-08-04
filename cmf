@@ -1,8 +1,6 @@
 import { LightningElement, track, wire } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { createRecord } from 'lightning/uiRecordApi';
-import { getObjectInfo } from 'lightning/uiObjectInfoApi';
-import { getPicklistValues } from 'lightning/uiObjectInfoApi';
 import { getRecord } from 'lightning/uiRecordApi';
 import ACCOUNT_OBJECT from '@salesforce/schema/Account';
 import CASH_MANAGEMENT_FORM_OBJECT from '@salesforce/schema/Cash_Management_Form__c';
@@ -21,21 +19,24 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
     @track SelectedDate = '';
     @track selectedProducts = [];
 
-    @wire(getRecord, { recordId: '$clientName', fields: ['Account.SRF__c'] })
-    wiredAccount({ error, data }) {
-        if (data) {
-            this.clientSRF = data.fields.SRF__c.value;
-        } else if (error) {
-            console.error('Error retrieving SRF:', error);
-        }
-    }
-
     handleRequestorNameChange(event) {
         this.RequestorName = event.target.value;
     }
 
     handleClientNameChange(event) {
-        this.clientName = event.target.value;
+        this.clientName = event.detail.value;
+        // Call the wire service to get the SRF value
+        if (this.clientName) {
+            getRecord({ recordId: this.clientName, fields: ['Account.SRF__c'] })
+                .then(record => {
+                    this.clientSRF = record.fields.SRF__c.value;
+                })
+                .catch(error => {
+                    console.error('Error retrieving SRF:', error);
+                });
+        } else {
+            this.clientSRF = '';
+        }
     }
 
     handleClientSRFChange(event) {
