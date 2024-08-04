@@ -1,11 +1,10 @@
 js
 
 
-
-import { LightningElement, track } from 'lwc';
+import { LightningElement, track, wire } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { NavigationMixin } from 'lightning/navigation';
-import { createRecord } from 'lightning/uiRecordApi';
+import { createRecord, getRecord } from 'lightning/uiRecordApi';
 import CASH_MANAGEMENT_FORM_OBJECT from '@salesforce/schema/Cash_Management_Form__c';
 import REQUESTOR_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Requestor_Name__c';
 import CLIENT_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_Name__c';
@@ -14,14 +13,31 @@ import CLIENT_TYPE_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client
 import DATE_FIELD from '@salesforce/schema/Cash_Management_Form__c.Date__c';
 import MAINTENANCE_PRODUCTS_FIELD from '@salesforce/schema/Cash_Management_Form__c.Maintenance_Products__c';
 
+const FIELDS = ['Account.Name', 'Account.Client_SRF__c'];
+
 export default class Rbcpcb_CashManagementForm extends NavigationMixin(LightningElement) {
     @track RequestorName = '';
     @track clientType = '';
     @track SelectedDate = '';
     @track selectedProducts = [];
+    @track clientId = '';
+    @track clientSRF = '';
+
+    @wire(getRecord, { recordId: '$clientId', fields: FIELDS })
+    wiredAccount({ error, data }) {
+        if (data) {
+            this.clientSRF = data.fields.Client_SRF__c.value;
+        } else if (error) {
+            this.clientSRF = '';
+        }
+    }
 
     handleRequestorNameChange(event) {
         this.RequestorName = event.target.value;
+    }
+
+    handleClientChange(event) {
+        this.clientId = event.detail.value;
     }
 
     handleClientTypeChange(event) {
@@ -47,6 +63,8 @@ export default class Rbcpcb_CashManagementForm extends NavigationMixin(Lightning
     handleSubmit() {
         const fields = {};
         fields[REQUESTOR_NAME_FIELD.fieldApiName] = this.RequestorName;
+        fields[CLIENT_NAME_FIELD.fieldApiName] = this.clientId;
+        fields[CLIENT_SRF_FIELD.fieldApiName] = this.clientSRF;
         fields[CLIENT_TYPE_FIELD.fieldApiName] = this.clientType;
         fields[DATE_FIELD.fieldApiName] = this.SelectedDate;
         fields[MAINTENANCE_PRODUCTS_FIELD.fieldApiName] = this.selectedProducts.join(',');
@@ -97,6 +115,8 @@ export default class Rbcpcb_CashManagementForm extends NavigationMixin(Lightning
         this.clientType = '';
         this.SelectedDate = '';
         this.selectedProducts = [];
+        this.clientId = '';
+        this.clientSRF = '';
     }
 
     handleClickUrl() {
@@ -131,6 +151,7 @@ export default class Rbcpcb_CashManagementForm extends NavigationMixin(Lightning
 html
 
 
+
 <template>
     <lightning-card title="New Cash Management Form">
         <div class="slds-m-around_medium">
@@ -140,9 +161,13 @@ html
                 onchange={handleRequestorNameChange}>
             </lightning-input>
             <lightning-record-edit-form object-api-name="Cash_Management_Form__c">
-                <lightning-input-field field-name="Client_Name__c"></lightning-input-field>
-                <lightning-input-field field-name="Client_SRF__c"></lightning-input-field>
+                <lightning-input-field field-name="Client_Name__c" onchange={handleClientChange}></lightning-input-field>
             </lightning-record-edit-form>
+            <lightning-input
+                label="Client SRF"
+                value={clientSRF}
+                readonly>
+            </lightning-input>
             <lightning-input
                 label="Select a Date"
                 type="date"
@@ -247,10 +272,7 @@ html
 
 
 
-
-
 js
-
 
 
 import { LightningElement, api, track, wire } from 'lwc';
@@ -322,9 +344,8 @@ export default class Rbcpcb_CashManagementFormDetails extends LightningElement {
 
 
 
-
-
 html
+
 
 
 
@@ -357,4 +378,3 @@ html
         </lightning-card>
     </template>
 </template>
-
