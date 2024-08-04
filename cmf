@@ -1,7 +1,3 @@
-html
-
-
-
 <template>
     <lightning-card title="New Cash Management Form">
         <div class="slds-m-around_medium">
@@ -10,10 +6,14 @@ html
                 value={RequestorName}
                 onchange={handleRequestorNameChange}>
             </lightning-input>
+            <lightning-input-field
+                field-name="Client_Name__c">
+            </lightning-input-field>
             <lightning-input
                 label="Client SRF"
                 value={clientSRF}
-                onchange={handleClientSRFChange}>
+                onchange={handleClientSRFChange}
+                readonly>
             </lightning-input>
             <lightning-input
                 label="Select a Date"
@@ -43,6 +43,7 @@ html
                     <lightning-accordion-section name="RBCExpressServices" label="RBC Express Services">
                         <div class="slds-m-around_small">
                             <h3 class="subheading">Accounts</h3>
+                            <lightning-input type="checkbox" label="ACH Accounts" onchange={handleCheckboxChange}></lightning-input>
                             <lightning-input type="checkbox" label="ACH Direct Deposit" onchange={handleCheckboxChange}></lightning-input>
                             <div class="notes">Either: -Prefunding Option One Time Override <br> -or- -Request for Temporary Additional Daily Limit</div>
                             <lightning-input type="checkbox" label="Non-Owned (MLE) Accounts" onchange={handleCheckboxChange}></lightning-input>
@@ -217,52 +218,13 @@ html
 
 
 
-css
-
-
-
-.slds-m-around_medium {
-    margin: 1rem;
-}
-
-.section-header {
-    margin-top: 1rem;
-}
-
-.section-divider {
-    margin: 1rem 0;
-}
-
-.subheading {
-    font-weight: bold;
-}
-
-.notes {
-    margin-top: 0.5rem;
-    color: gray;
-}
-
-.clickable {
-    color: blue;
-    cursor: pointer;
-}
-
-.clickable:hover {
-    text-decoration: underline;
-}
-
-
-
-
 js
 
 
-
-import { LightningElement, track } from 'lwc';
+import { LightningElement, track, wire } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { createRecord } from 'lightning/uiRecordApi';
+import { createRecord, getRecord } from 'lightning/uiRecordApi';
 import { NavigationMixin } from 'lightning/navigation';
-import ACCOUNT_OBJECT from '@salesforce/schema/Account';
 import CLIENT_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_Name__c';
 import REQUESTOR_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Requestor_Name__c';
 import CLIENT_SRF_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_SRF__c';
@@ -277,6 +239,7 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
     @track clientType = '';
     @track SelectedDate = '';
     @track selectedProducts = [];
+    @track recordId;
 
     handleRequestorNameChange(event) {
         this.RequestorName = event.target.value;
@@ -339,7 +302,8 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
         const recordInput = { apiName: CASH_MANAGEMENT_FORM_OBJECT.objectApiName, fields };
 
         createRecord(recordInput)
-            .then(() => {
+            .then((record) => {
+                this.recordId = record.id;
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title: 'Success',
@@ -348,6 +312,7 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
                     })
                 );
                 this.resetForm();
+                this.handleNext();
             })
             .catch(error => {
                 this.dispatchEvent(
@@ -408,3 +373,5 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
         return this.clientType === 'Private Banking CBR Client';
     }
 }
+
+
