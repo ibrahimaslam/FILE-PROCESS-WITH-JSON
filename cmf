@@ -217,9 +217,7 @@
 
 
 
-
-jss
-
+js
 
 
 
@@ -360,3 +358,4 @@ export default class CashManagementForm extends NavigationMixin(LightningElement
         return this.clientType === 'Private Banking CBR Client';
     }
 }
+
