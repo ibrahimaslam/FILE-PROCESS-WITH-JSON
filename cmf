@@ -1,199 +1,90 @@
+html
+
+
 <template>
-    <lightning-card title="New Cash Management Form">
-        <div class="slds-m-around_medium">
-            <lightning-record-edit-form object-api-name="Cash_Management_Form__c" onsuccess={handleSuccess}>
-                <lightning-messages></lightning-messages>
-                <lightning-input-field field-name="Requestor_Name__c"></lightning-input-field>
-                <lightning-input-field field-name="Client_Name__c"></lightning-input-field>
-                <lightning-input
-                    label="Client SRF"
-                    value={clientSRF}
-                    onchange={handleClientSRFChange}>
-                </lightning-input>
-                <lightning-input
-                    label="Select a Date"
-                    type="date"
-                    value={SelectedDate}
-                    onchange={handleDateChange}>
-                </lightning-input>
-                <lightning-combobox
-                    name="clientType"
-                    label="Client Type"
-                    value={clientType}
-                    options={clientTypeOptions}
-                    onchange={handleClientTypeChange}>
-                </lightning-combobox>
-                <div class="section-header">
-                    <h2>Select Maintenance Products</h2>
-                    <p>Click to open a section for selection</p>
-                </div>
-                <hr class="section-divider">
-                <!-- Accordion Sections -->
-                <template if:true={isCommercialClient}>
-                    <lightning-accordion>
-                        <!-- Your accordion sections here -->
-                    </lightning-accordion>
-                </template>
-                <lightning-button
-                    class="slds-m-top_medium"
-                    variant="brand"
-                    label="Save"
-                    onclick={handleSubmit}>
-                </lightning-button>
-                <lightning-button
-                    class="slds-m-top_medium"
-                    variant="neutral"
-                    label="Next"
-                    onclick={handleNext}>
-                </lightning-button>
-            </lightning-record-edit-form>
+    <lightning-button label="Submit Form" onclick={handleSubmitForm}></lightning-button>
+    <template if:true={errorMessage}>
+        <div class="slds-box slds-theme_error slds-m-top_medium">
+            <p>{errorMessage}</p>
         </div>
-    </lightning-card>
+    </template>
+    <template if:true={successMessage}>
+        <div class="slds-box slds-theme_success slds-m-top_medium">
+            <p>{successMessage}</p>
+        </div>
+    </template>
 </template>
 
 
 
+js
 
 
+import { LightningElement, api, track } from 'lwc';
+import validateAndSubmit from '@salesforce/apex/SubmitFormComponentController.validateAndSubmit';
 
-import { LightningElement, track } from 'lwc';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { createRecord } from 'lightning/uiRecordApi';
-import { NavigationMixin } from 'lightning/navigation';
-import CLIENT_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_Name__c';
-import REQUESTOR_NAME_FIELD from '@salesforce/schema/Cash_Management_Form__c.Requestor_Name__c';
-import CLIENT_SRF_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_SRF__c';
-import CLIENT_TYPE_FIELD from '@salesforce/schema/Cash_Management_Form__c.Client_Type__c';
-import DATE_FIELD from '@salesforce/schema/Cash_Management_Form__c.Date__c';
-import CASH_MANAGEMENT_FORM_OBJECT from '@salesforce/schema/Cash_Management_Form__c';
+export default class SubmitFormComponent extends LightningElement {
+    @api recordId;
+    @track errorMessage = '';
+    @track successMessage = '';
 
-export default class CashManagementForm extends NavigationMixin(LightningElement) {
-    @track RequestorName = '';
-    @track clientName = '';
-    @track clientSRF = '';
-    @track clientType = '';
-    @track SelectedDate = '';
-    @track selectedProducts = [];
-    @track recordId;
-
-    handleRequestorNameChange(event) {
-        this.RequestorName = event.target.value;
-    }
-
-    handleClientNameChange(event) {
-        this.clientName = event.detail.value;
-    }
-
-    handleClientSRFChange(event) {
-        this.clientSRF = event.target.value;
-    }
-
-    handleClientTypeChange(event) {
-        this.clientType = event.detail.value;
-    }
-
-    handleCheckboxChange(event) {
-        const label = event.target.label;
-        if (event.target.checked) {
-            if (!this.selectedProducts.includes(label)) {
-                this.selectedProducts.push(label);
-            }
-        } else {
-            const index = this.selectedProducts.indexOf(label);
-            if (index > -1) {
-                this.selectedProducts.splice(index, 1);
-            }
-        }
-    }
-
-    handleDateChange(event) {
-        this.SelectedDate = event.detail.value;
-    }
-
-    handleSubmit() {
-        const fields = {};
-        fields[REQUESTOR_NAME_FIELD.fieldApiName] = this.RequestorName;
-        fields[CLIENT_NAME_FIELD.fieldApiName] = this.clientName;
-        fields[CLIENT_SRF_FIELD.fieldApiName] = this.clientSRF;
-        fields[CLIENT_TYPE_FIELD.fieldApiName] = this.clientType;
-        fields[DATE_FIELD.fieldApiName] = this.SelectedDate;
-        fields['Maintenance_Products__c'] = this.selectedProducts.join(',');
-
-        const recordInput = { apiName: CASH_MANAGEMENT_FORM_OBJECT.objectApiName, fields };
-
-        createRecord(recordInput)
-            .then((record) => {
-                this.recordId = record.id;
-                this.dispatchEvent(
-                    new ShowToastEvent({
-                        title: 'Success',
-                        message: 'Cash Management Form created successfully',
-                        variant: 'success',
-                    })
-                );
-                this.resetForm();
-                this.handleNext();
+    handleSubmitForm() {
+        validateAndSubmit({ cashFormId: this.recordId })
+            .then(result => {
+                if (result === 'Not all forms are filled out') {
+                    this.errorMessage = result;
+                    this.successMessage = '';
+                } else {
+                    this.successMessage = result;
+                    this.errorMessage = '';
+                }
             })
             .catch(error => {
-                this.dispatchEvent(
-                    new ShowToastEvent({
-                        title: 'Error creating record',
-                        message: error.body.message,
-                        variant: 'error',
-                    })
-                );
+                this.errorMessage = 'An error occurred: ' + error.body.message;
+                this.successMessage = '';
             });
     }
+}
 
-    handleNext() {
-        const state = {
-            c__selectedProducts: this.selectedProducts.join(','),
-            c__recordId: this.recordId
-        };
 
-        this[NavigationMixin.Navigate]({
-            type: 'standard__navItemPage',
-            attributes: {
-                apiName: 'Cash_Management_Form_Details_Page'
-            },
-            state: state
-        });
-    }
 
-    resetForm() {
-        this.RequestorName = '';
-        this.clientName = '';
-        this.clientSRF = '';
-        this.clientType = '';
-        this.SelectedDate = '';
-        this.selectedProducts = [];
-    }
 
-    handleClickUrl() {
-        window.open('http://rbcnet.fg.rbc.com/ACH/file-828674.pdf', '_blank');
-    }
+css
 
-    get clientTypeOptions() {
-        return [
-            { label: 'Commercial Financial Services Client', value: 'Commercial Financial Services Client' },
-            { label: 'GBSC Serviced Client', value: 'GBSC Serviced Client' },
-            { label: 'Private Banking CBR Client', value: 'Private Banking CBR Client' },
-        ];
-    }
 
-    get isCommercialClient() {
-        return this.clientType === 'Commercial Financial Services Client';
-    }
 
-    get isGBSCClient() {
-        return this.clientType === 'GBSC Serviced Client';
-    }
+.slds-box {
+    padding: 1rem;
+}
 
-    get isPrivateBankingClient() {
-        return this.clientType === 'Private Banking CBR Client';
-    }
 
-    handleSuccess(event) {
-        this.recordId = event.detail.id;
+
+
+class
+
+
+
+
+public class SubmitFormComponentController {
+    @AuraEnabled
+    public static String validateAndSubmit(Id cashFormId) {
+        // Fetch all related objects
+        List<ChildObject1__c> child1Records = [SELECT Id FROM ChildObject1__c WHERE CashForm__c = :cashFormId];
+        List<ChildObject2__c> child2Records = [SELECT Id FROM ChildObject2__c WHERE CashForm__c = :cashFormId];
+        // Add checks for other child objects as needed
+        
+        // Validation: Check if at least one record of each child object exists
+        if (child1Records.isEmpty() || child2Records.isEmpty()) {
+            return 'Not all forms are filled out';
+        }
+        
+        // If validation passes, create a new Case
+        Case newCase = new Case(
+            Subject = 'New Case for Cash Management Form',
+            CashManagementForm__c = cashFormId
+        );
+        insert newCase;
+        
+        return 'Validation passed, case created successfully';
     }
 }
